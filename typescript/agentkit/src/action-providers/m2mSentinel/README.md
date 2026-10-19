@@ -9,6 +9,10 @@ The M2M Sentinel Action Provider equips AgentKit agents with smart contract byte
 - **`get_token_price`**: Observe real-time Base DEX token prices for slippage checks and preflight valuation.
 - **`get_service_status`**: Check operational status and trust quorum of M2M Sentinel verification rails.
 
+## Authentication and payment
+
+An API key is optional and is sent using the `x-api-key` header. `audit_contract` reports HTTP 402 as `PAYMENT_REQUIRED`; the other actions report non-success responses as `ERROR` or `UNAVAILABLE`. This provider does not expose x402 challenge details or sign or settle payments. Use a separate x402 client if payment is required.
+
 ## Usage
 
 ```typescript

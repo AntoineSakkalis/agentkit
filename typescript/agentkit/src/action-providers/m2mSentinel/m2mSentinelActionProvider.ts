@@ -32,38 +32,6 @@ export class M2MSentinelActionProvider extends ActionProvider<EvmWalletProvider>
   }
 
   /**
-   * Checks if the target network is supported by M2M Sentinel.
-   *
-   * @param network - The network instance to validate
-   * @returns True if network is Base mainnet or Base Sepolia
-   */
-  supportsNetwork(network: Network): boolean {
-    const chainId = String(network.chainId || network.networkId || "");
-    const protocolFamily = String(network.protocolFamily || "evm").toLowerCase();
-    return (
-      protocolFamily === "evm" &&
-      (SUPPORTED_NETWORKS.includes(network.networkId || "") ||
-        chainId === "8453" ||
-        chainId === "84532")
-    );
-  }
-
-  private async fetchApi(path: string, init?: RequestInit): Promise<Response> {
-    const headers: Record<string, string> = {
-      Accept: "application/json",
-      "User-Agent": "CoinbaseAgentKit-M2MSentinel/1.1.0",
-      ...(init?.headers as Record<string, string>),
-    };
-    if (this.apiKey && !headers["x-api-key"]) {
-      headers["x-api-key"] = this.apiKey;
-    }
-    return fetch(`${this.baseUrl}${path}`, {
-      ...init,
-      headers,
-    });
-  }
-
-  /**
    * Inspects a Base target contract for bytecode capability observations, proxy implementation slots, and limitations.
    *
    * @param _wallet - The wallet provider instance (not consumed for read operations)
@@ -85,7 +53,8 @@ export class M2MSentinelActionProvider extends ActionProvider<EvmWalletProvider>
       if (res.status === 402) {
         return JSON.stringify({
           status: "PAYMENT_REQUIRED",
-          message: "Payment required. Authenticate with an M2M Sentinel API key or settle the x402 challenge.",
+          message:
+            "Payment required. This provider returns the 402 status only; it does not expose the challenge or settle payment. Configure an API key or use a separate x402 client.",
           notASafetyGuarantee: true,
         });
       }
@@ -122,7 +91,8 @@ export class M2MSentinelActionProvider extends ActionProvider<EvmWalletProvider>
    */
   @CreateAction({
     name: "get_gas_metrics",
-    description: "Get real-time Base network gas execution metrics and fee recommendations before submitting transactions.",
+    description:
+      "Get real-time Base network gas execution metrics and fee recommendations before submitting transactions.",
     schema: GetGasMetricsSchema,
   })
   async getGasMetrics(
@@ -132,11 +102,18 @@ export class M2MSentinelActionProvider extends ActionProvider<EvmWalletProvider>
     try {
       const res = await this.fetchApi("/v1/gas/fees");
       if (!res.ok) {
-        return JSON.stringify({ status: "ERROR", statusCode: res.status, message: "Failed to retrieve gas fees" });
+        return JSON.stringify({
+          status: "ERROR",
+          statusCode: res.status,
+          message: "Failed to retrieve gas fees",
+        });
       }
       return JSON.stringify(await res.json());
     } catch (err) {
-      return JSON.stringify({ status: "ERROR", message: err instanceof Error ? err.message : String(err) });
+      return JSON.stringify({
+        status: "ERROR",
+        message: err instanceof Error ? err.message : String(err),
+      });
     }
   }
 
@@ -157,13 +134,21 @@ export class M2MSentinelActionProvider extends ActionProvider<EvmWalletProvider>
     args: z.infer<typeof GetTokenPriceSchema>,
   ): Promise<string> {
     try {
-      const res = await this.fetchApi(`/v1/token/price/${encodeURIComponent(args.symbol.toUpperCase())}`);
+      const path = `/v1/token/price/${encodeURIComponent(args.symbol.toUpperCase())}`;
+      const res = await this.fetchApi(path);
       if (!res.ok) {
-        return JSON.stringify({ status: "ERROR", statusCode: res.status, message: `Failed to retrieve price for ${args.symbol}` });
+        return JSON.stringify({
+          status: "ERROR",
+          statusCode: res.status,
+          message: `Failed to retrieve price for ${args.symbol}`,
+        });
       }
       return JSON.stringify(await res.json());
     } catch (err) {
-      return JSON.stringify({ status: "ERROR", message: err instanceof Error ? err.message : String(err) });
+      return JSON.stringify({
+        status: "ERROR",
+        message: err instanceof Error ? err.message : String(err),
+      });
     }
   }
 
@@ -190,8 +175,50 @@ export class M2MSentinelActionProvider extends ActionProvider<EvmWalletProvider>
       }
       return JSON.stringify(await res.json());
     } catch (err) {
-      return JSON.stringify({ status: "UNAVAILABLE", message: err instanceof Error ? err.message : String(err) });
+      return JSON.stringify({
+        status: "UNAVAILABLE",
+        message: err instanceof Error ? err.message : String(err),
+      });
     }
+  }
+
+  /**
+   * Checks if the target network is supported by M2M Sentinel.
+   *
+   * @param network - The network instance to validate
+   * @returns True if network is Base mainnet or Base Sepolia
+   */
+  supportsNetwork(network: Network): boolean {
+    const chainId = String(network.chainId || network.networkId || "");
+    const protocolFamily = String(network.protocolFamily || "evm").toLowerCase();
+    return (
+      protocolFamily === "evm" &&
+      (SUPPORTED_NETWORKS.includes(network.networkId || "") ||
+        chainId === "8453" ||
+        chainId === "84532")
+    );
+  }
+
+  /**
+   * Sends a request to the M2M Sentinel API.
+   *
+   * @param path - API path to request
+   * @param init - Optional fetch request options
+   * @returns The API response
+   */
+  private async fetchApi(path: string, init?: RequestInit): Promise<Response> {
+    const headers: Record<string, string> = {
+      Accept: "application/json",
+      "User-Agent": "CoinbaseAgentKit-M2MSentinel/1.1.0",
+      ...(init?.headers as Record<string, string>),
+    };
+    if (this.apiKey && !headers["x-api-key"]) {
+      headers["x-api-key"] = this.apiKey;
+    }
+    return fetch(`${this.baseUrl}${path}`, {
+      ...init,
+      headers,
+    });
   }
 }
 

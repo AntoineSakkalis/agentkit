@@ -7,7 +7,10 @@ export const AuditContractSchema = z
   .object({
     address: z
       .string()
-      .regex(/^0x[a-fA-F0-9]{40}$/, "Invalid contract address format (must be 0x followed by 40 hex characters)")
+      .regex(
+        /^0x[a-fA-F0-9]{40}$/,
+        "Invalid contract address format (must be 0x followed by 40 hex characters)",
+      )
       .describe("Target Base mainnet smart contract address to inspect"),
   })
   .strip()
