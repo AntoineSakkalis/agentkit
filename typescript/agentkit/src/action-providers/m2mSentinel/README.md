@@ -18,8 +18,7 @@ An API key is optional and is sent using the `x-api-key` header. `audit_contract
 ## Usage
 
 ```typescript
-import { AgentKit } from "@coinbase/agentkit";
-import { m2mSentinelActionProvider } from "@coinbase/agentkit/action-providers/m2mSentinel";
+import { AgentKit, m2mSentinelActionProvider } from "@coinbase/agentkit";
 
 const agentKit = await AgentKit.from({
   walletProvider,
