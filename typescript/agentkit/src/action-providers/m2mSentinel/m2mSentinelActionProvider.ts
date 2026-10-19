@@ -10,7 +10,7 @@ import {
   GetServiceStatusSchema,
   M2MSentinelConfig,
 } from "./schemas";
-import { SUPPORTED_NETWORKS, DEFAULT_BASE_URL } from "./constants";
+import { BASE_MAINNET_CHAIN_ID, BASE_MAINNET_NETWORK_ID, DEFAULT_BASE_URL } from "./constants";
 
 /**
  * M2MSentinelActionProvider enables AI agents on Base to perform preflight bytecode
@@ -186,16 +186,20 @@ export class M2MSentinelActionProvider extends ActionProvider<EvmWalletProvider>
    * Checks if the target network is supported by M2M Sentinel.
    *
    * @param network - The network instance to validate
-   * @returns True if network is Base mainnet or Base Sepolia
+   * @returns True only when the network identifies Base Mainnet
    */
   supportsNetwork(network: Network): boolean {
-    const chainId = String(network.chainId || network.networkId || "");
-    const protocolFamily = String(network.protocolFamily || "evm").toLowerCase();
+    if (network.protocolFamily !== "evm") {
+      return false;
+    }
+
+    const hasNetworkId = network.networkId !== undefined;
+    const hasChainId = network.chainId !== undefined;
+
     return (
-      protocolFamily === "evm" &&
-      (SUPPORTED_NETWORKS.includes(network.networkId || "") ||
-        chainId === "8453" ||
-        chainId === "84532")
+      (hasNetworkId || hasChainId) &&
+      (!hasNetworkId || network.networkId === BASE_MAINNET_NETWORK_ID) &&
+      (!hasChainId || network.chainId === BASE_MAINNET_CHAIN_ID)
     );
   }
 

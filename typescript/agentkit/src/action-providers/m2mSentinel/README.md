@@ -4,10 +4,12 @@ The M2M Sentinel Action Provider equips AgentKit agents with smart contract byte
 
 ## Capabilities
 
-- **`audit_contract`**: Inspect target contract bytecode capability observations, proxy implementation slots (EIP-1967/UUPS/Beacon), and known limitation heuristics in <35ms.
+- **`audit_contract`**: Return Base Mainnet target contract bytecode capability observations, proxy implementation slot results (EIP-1967/UUPS/Beacon), and known limitations.
 - **`get_gas_metrics`**: Get real-time Base network gas metrics and fee recommendations.
 - **`get_token_price`**: Observe real-time Base DEX token prices for slippage checks and preflight valuation.
 - **`get_service_status`**: Check operational status and trust quorum of M2M Sentinel verification rails.
+
+These are static capability observations, not a safety determination. Results may be incomplete and do not establish runtime reachability; do not treat them as approval to execute a transaction.
 
 ## Authentication and payment
 
